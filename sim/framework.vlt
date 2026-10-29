@@ -1,0 +1,6 @@
+`verilator_config
+// Keep the upstream framework byte-identical. Its legacy style warnings are
+// outside this core's lint boundary; syntax/elaboration errors still fail.
+lint_off -file "*sys/*"
+// Quartus accepts this legacy procedural output declaration in upstream Hq2x.
+lint_off -rule PROCASSWIRE -file "*sys/hq2x.sv"

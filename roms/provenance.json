@@ -1,0 +1,18 @@
+{
+  "source": "https://raw.githubusercontent.com/tinue/Calc-U-59/e6325e955dff61aa51b596317436fae34249cb0c/roms/",
+  "sha256_inputs": {
+    "calculator/TMC0582.txt": "a15d4cde706a8fc5986f7538e8a08f1c0d1a76389fee9f5f07d346b4af998c27",
+    "calculator/TMC0583.txt": "269fdb103cba80a055efd274180e4efeb2ae6e2a63b3b8c5489fee98e63cb353",
+    "calculator/TMC0571B.txt": "cf1deab12391a56fc747ea324090203e65825bf2918ff3c18be15d038a0ed6c9",
+    "calculator/TMC0582-CONST-K.txt": "64a879fc1273de8ca8baf2391f3ce12d28e3c9a2780aba5fede8d5f52962fb88",
+    "calculator/TMC0583-CONST-K.txt": "bda4ac42985d2802bbe16b1cf53c066d20dd72dcea886eb21aff2a2a432cdf1d",
+    "solid-state/TMC0541.txt": "054107f0a6ca9a3b213d04090d0739c355041b88baea474e32a61d97c6874f2f"
+  },
+  "sha256_outputs": {
+    "firmware.hex": "c23f5ce29738d49ea534cddc58e0b45009b1600acf2c7445b5671f51bb4916a6",
+    "firmware.bin": "985e9b852774904adec1b6b45bf5be11d0669e8285a24a2cc65b8d4e277625a0",
+    "constants.hex": "35c3b8d30951278e695b000f2188c8d29aeead7b9652846efacbf9c1477c2af1",
+    "library.hex": "bf2e88227ac87827ea0d03fff5acb456d73bb8b0ae0f4ecbd9c4d518f8b4429f"
+  },
+  "copyright": "Original firmware and data: Texas Instruments, 1977. Not covered by the HDL license."
+}
