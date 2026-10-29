@@ -2,7 +2,7 @@
 
 A TI-59 programmable calculator running its original firmware, with a
 photographic panel, magnetic cards, a thermal printer and mechanical sound
-effects. No SDRAM module is required.
+effects.
 
 ![TI-59 and printer running on MiSTer](docs/ti59-hardware.png)
 
@@ -57,10 +57,7 @@ calculator memory.
 ## Display and sound
 
 In the MiSTer menu, **GUI resolution** selects **240p** or **480p** for Direct
-Video and native analog output. Use a mode your display supports. 480p shows
-more panel detail and is native, without scandoubling. 240p honors MiSTer's
-global forced-scandoubler setting. Normal HDMI uses MiSTer's configured output
-resolution; **Aspect ratio** and **HDMI scaling** control how the panel fits.
+Video and native analog output.
 
 **Sound effects** offers **Normal**, **Quiet**, and **Off** for key taps,
 the card motor and the printer.
