@@ -6,11 +6,12 @@
 #include <stdexcept>
 #include <vector>
 #include <string>
+#include <algorithm>
 
 static void require(bool ok,const std::string&why){if(!ok)throw std::runtime_error(why);}
 int main(int argc,char**argv){
     std::cout.setf(std::ios::unitbuf);Verilated::commandArgs(argc,argv);Vti59_system d;
-    d.clear_paper=0;d.mode_480p=0;d.clk=0;d.reset=1;d.osd_open=0;d.ps2_key=0;
+    d.clear_paper=0;d.mode_480p=0;d.direct_video=1;d.clk=0;d.reset=1;d.osd_open=0;d.ps2_key=0;d.ps2_mouse=0;
     d.card_download=0; d.card_wr=0; d.card_addr=0; d.card_dout=0;
     d.joystick=0;d.lib_wr=0;d.lib_waddr=0;d.lib_wdata=0;d.sound_level=0;
     unsigned clicks=0,card_audio=0,printer_audio=0;
@@ -98,6 +99,26 @@ int main(int argc,char**argv){
         d.osd_open=1;event(0x1e,true);event(0x1e,false);run(10000);require(clicks==1,"OSD keys are silent");d.osd_open=0;
         d.reset=1;run(100);d.reset=0;run(25200000);
         key(0x1e);key(0x79);key(0x26);key(0x5a);expect("5.");
+        int mx=1000,my=480;
+        auto mouse_packet=[&](int dx,int dy,bool down){
+            d.ps2_mouse=((d.ps2_mouse^(1<<24))&(1<<24))|8|int(down)|
+                (dx<0?16:0)|(dy<0?32:0)|((dx&255)<<8)|((dy&255)<<16);
+            mx+=dx;my-=dy;run(8);
+        };
+        auto mouse_click=[&](int x,int y){
+            while(mx!=x*2 || my!=y*2)mouse_packet(std::clamp(x*2-mx,-200,200),std::clamp(my-y*2,-200,200),false);
+            mouse_packet(0,0,true);run(50400); // One millisecond physical click.
+            mouse_packet(0,0,false);run(10080000);
+            auto limit=cycles+151200000ULL;unsigned quiet=0;
+            while(quiet<10){require(cycles<limit,"mouse printer completion timeout");run(252000);quiet=d.rootp->ti59_system__DOT__printer_busy?0:quiet+1;}
+        };
+        mouse_click(560,209);mouse_click(501,362);mouse_click(560,362);mouse_click(530,362);mouse_click(560,388);expect("5.");
+        auto mouse_prints=printed.size();mouse_click(105,411);
+        require(printed.size()>mouse_prints && printed.back().find("5.")!=std::string::npos,"mouse PRINT through original firmware");
+        auto mouse_feeds=feeds;mouse_click(199,411);require(feeds==mouse_feeds+2,"mouse ADV through firmware");
+        mouse_click(152,411);require(d.rootp->ti59_system__DOT__trace_on,"mouse TRACE on");
+        mouse_click(152,411);require(!d.rootp->ti59_system__DOT__trace_on,"mouse TRACE off");
+        std::cout<<"PASS: one-millisecond mouse clicks calculate 2+3=5 and operate PRINT/ADV/TRACE through firmware\n";
         key(0x66);key(0x16);key(0x3d);key(0x4d);key(0x45);key(0x45); // 17 STO 00
         key(0x66);key(0x44);key(0x45);key(0x45);expect("17.");
         key(0x0b);run(50400000); // Physical PRINT via F6.

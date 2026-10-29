@@ -1,11 +1,89 @@
-# Validation — sound-effects update, October 28, 2026
+# Validation — mouse and automatic HDMI update, October 29, 2026
+
+Current RBF: `releases/TI59_20261029.rbf`, 3,341,780 bytes.
+SHA-256: `a4b0a4c5b37e730a80ebd94d3511ae55fb2b8e1dfa38fd3398d7b21d98a5732b`.
+Installed by checksum-verified staged replacement and booted on physical MiSTer.
+The October 28 release remains available in `releases/`.
+
+## Mouse and video checks
+
+Verilator 5.052 on Mac. Lint, mouse-input and video tests pass. All 57 framework
+files still match Template_MiSTer `5dda37366d02b04b8448da7b322235c1831af811`.
+
+- All 45 calculator keys and three printer buttons: hover geometry, correct TI
+  keyboard-matrix bits, short-click stretching, held clicks, drag capture,
+  button gaps, background dragging, and one sound/TRACE toggle per press.
+- Signed nine-bit motion, single-count accumulation, overflow, all screen edges,
+  packet strobes, ignored right/middle buttons, OSD cancellation, release to
+  rearm after OSD/reset, and continued keyboard/gamepad operation.
+- Full-system mouse regression: 1,332,998,400 clocks / 1,586 source frames.
+  One-millisecond clicks calculate 2 + 3 = 5 and operate PRINT/ADV/TRACE through
+  the original firmware. Keyboard arithmetic, memory value 17, magnetic-card
+  loading, program result 6, reload, audio events and reset continuity pass.
+  This run preceded the HDMI-only mode-selection change; final lint and video
+  runs below cover that change.
+- Final video regression: 102,369,608 clocks through the actual upstream
+  mixer/freak modules. Native 240p, doubled 240p and native 480p preserve cursor
+  position. Normal HDMI always produces the same native-480p artwork for both
+  saved resolution choices and forced-scandoubler values. Returning to Direct
+  Video restores the selected 240p mode. Existing gamma, aspect, integer scale,
+  printer ink, card clipping and TRACE highlight checks pass.
+
+Logs: `build/mouse-input-video.log`, `build/mouse-system.log` and
+`build/mouse-hdmi-video.log`. The unchanged CPU oracle and standalone peripheral
+checks are documented in the historical results below.
+
+## Final Quartus build
+
+Ubuntu Quartus 17.0.2 Lite, DE10-Nano, seed 1, 10m18s full compile. All 33 STA
+checks have positive slack and zero total negative slack: setup +0.228 ns,
+calculator setup +1.547, hold +0.197, recovery +3.705, removal +0.993 and pulse
+width +0.396 ns. 11,347 ALMs, 15,328 registers, 3,265,458 memory bits,
+423/553 RAM blocks, 41 DSPs and 3 PLLs. Mouse support adds no block RAM.
+
+Zero errors and zero critical warnings; 49 warnings. The new warning reports
+that `unused_buttons` is unused: that reduction explicitly marks the ignored
+PS/2 marker/right/middle bits for lint. Other warnings are the existing
+ROM/font/PLL/I/O and audio constant-shift messages. All 83 local synthesized
+sources, ROM inputs and generated build-date hashes match Ubuntu. Reports:
+`output_files/`, `build/quartus.log`, and `build/hardware/mouse/timing.json`.
+
+## Physical MiSTer
+
+Tests inject virtual USB mouse events with Linux uinput, through MiSTer Main's
+ordinary mouse path and `hps_io`; they do not patch calculator registers.
+A human-operated physical mouse was not separately tested.
+
+- Direct Video 240p: cursor positions match the artwork; mouse clicks calculate
+  2 + 3 = 5 and PRINT puts 5 on the paper.
+- Normal HDMI with a saved 240p choice: mouse TRACE, calculation, PRINT and held
+  ADV work. Independent paper-dot decoding reads CLR, 2 +, 3 =, 5, and 5 PRT;
+  holding ADV moves every printed row upward by 72 logical pixels.
+- The normal-HDMI capture matches all 47,205 checked fixed-artwork pixels from
+  the native-480p reference. Only 29,355 match doubled 240p. RetroTINK measures
+  the configured 1920x1080 HDMI output, confirming the scaler remains active.
+- Direct Video native 480p: mouse calculation and PRINT work. Its screenshot
+  API returns an incomplete 338x254 frame, so the resulting 5 is checked after
+  switching to 240p without resetting. Native 480p is then restored.
+
+RetroTINK measurements: 240p is 3200x262 total / 2560x240 active HDMI wire pixels;
+native 480p is 1600x525 total / 1280x480 active. Horizontal repetition accounts
+for the wire widths. Separate analog VGA hardware was not tested.
+
+Evidence is in `build/hardware/mouse/`; the README image is the live normal-HDMI
+TRACE/PRINT capture. MiSTer.ini is restored byte-for-byte to SHA-256
+`3e0e5f729433aea4646cad1dc3fdb133824b485c1d692e9166b8e517414999cb`.
+Temporary helpers are removed and Zaparoo is returned to its original stopped
+state. No simulation or Quartus container remains running.
+
+## Previous sound-effects validation, October 28, 2026
 
 Current RBF: `releases/TI59_20261028.rbf`, 3,371,500 bytes.
 SHA-256: `1c31b41687036feeda1087348ea6a3e866994fe788d5326fec5bd04a5716b043`.
 Installed by checksum-verified staged replacement and booted on physical MiSTer.
 The preceding silent printer release is retained in `build/before-sound/`.
 
-## Audio and regression checks
+### Audio and regression checks
 
 Verilator 5.052 on Mac: lint, audio, printer, card and full-system tests pass.
 All 57 framework files still match the pinned Template_MiSTer revision.
@@ -39,7 +117,7 @@ Evidence: `build/sound-focused.log`, `build/sound-system-demo.log`,
 The separate CPU-oracle and full mixer/freak tests below were run on the preceding
 printer release; those implementations were unchanged by the sound update.
 
-## Quartus and installation
+### Quartus and installation
 
 Ubuntu Quartus 17.0.2 Lite, DE10-Nano, seed 1, 5m43s full compile. All 33 reported
 STA checks have positive slack and zero total negative slack: setup +0.326 ns,

@@ -1,7 +1,8 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 module ti59_system (
-    input wire clk, reset, osd_open, mode_480p, clear_paper,
+    input wire clk, reset, osd_open, mode_480p, direct_video, clear_paper,
     input wire [10:0] ps2_key,
+    input wire [24:0] ps2_mouse,
     input wire [7:0] joystick,
     input wire [1:0] sound_level,
     input wire lib_wr,
@@ -35,6 +36,9 @@ module ti59_system (
         .line_printed(),.last_line());
     wire [5:0] selected;
     wire pressed;
+    wire [9:0] mouse_x;
+    wire [8:0] mouse_y;
+    wire mouse_visible;
     ti59_input controls (.keys(control_keys),.osd_open(osd_open || card_busy),.*);
     ti59_audio sounds (.clk(clk),.reset(reset),.key_click(key_click),
         .card_motor(card_motor),.printer_motor(printer_motor),.level(sound_level),

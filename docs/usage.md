@@ -4,6 +4,15 @@
 
 ## Controls
 
+Move a connected mouse to show the pointer, then **left-click** a calculator
+key or one of the three printer buttons. Hovering highlights the target.
+Hold **ADV** to keep feeding paper. Dragging while held keeps the original
+button pressed until release; it does not press neighboring keys.
+The pointer works in both 240p and 480p, including Direct Video and analog.
+Mouse input is suspended while the MiSTer menu is open or a card is loading;
+release the button before clicking again. Right-click and the wheel have no
+calculator action. Keyboard and gamepad controls remain available.
+
 Use arrows or the gamepad D-pad to move the blue highlight. **Space** or the
 gamepad's **Press key** button presses the selected calculator key or printer
 button. The right arrow moves from `=` to the three printer buttons; the left

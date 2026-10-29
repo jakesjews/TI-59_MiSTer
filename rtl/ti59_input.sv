@@ -2,12 +2,16 @@
 module ti59_input (
     input wire clk, reset, osd_open,
     input wire [10:0] ps2_key,
+    input wire [24:0] ps2_mouse,
     input wire [7:0] joystick,
     output reg [111:0] keys,
     output reg [5:0] selected,
     output reg trace_on,
     output wire pressed,
-    output reg key_click
+    output reg key_click,
+    output wire [9:0] mouse_x,
+    output wire [8:0] mouse_y,
+    output wire mouse_visible
 );
     reg toggle, shift_l, shift_r, space_down;
     reg [8:0] held_scan;
@@ -15,6 +19,9 @@ module ti59_input (
     reg [3:0] joy_old;
     wire shift = shift_l | shift_r;
     localparam NONE = 6'd63;
+    wire [5:0] mouse_key, mouse_hover;
+    wire mouse_update;
+    ti59_mouse mouse (.blocked(osd_open),.*);
     reg [5:0] mapped;
     always @* begin
         mapped = NONE;
@@ -84,6 +91,10 @@ module ti59_input (
         end else if (osd_open) begin
             held_key <= NONE; space_down <= 0; shift_l <= 0; shift_r <= 0;
         end else begin
+            if(held_key==NONE && !space_down && joystick[7:4]==0) begin
+                if(mouse_key!=NONE) selected<=mouse_key;
+                else if(mouse_update && mouse_hover!=NONE) selected<=mouse_hover;
+            end
             if (joy_rise[0] && selected < 47) selected <= selected + 6'd1;
             if (joy_rise[1] && selected > 0) selected <= selected - 6'd1;
             if (joy_rise[2]) selected <= selected >= 45 ? (selected == 47 ? 6'd45 : selected + 6'd1) : (selected < 40 ? selected + 6'd5 : selected - 6'd40);
@@ -111,7 +122,7 @@ module ti59_input (
     reg [5:0] active_key;
     integer row, col, bit_number;
     always @* begin
-        active_key = held_key;
+        active_key = held_key!=NONE ? held_key : mouse_key;
         if (space_down || joystick[4]) active_key = selected;
         if (joystick[5]) active_key = 5;
         if (joystick[6]) active_key = 6;

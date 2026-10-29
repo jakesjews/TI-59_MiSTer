@@ -3,7 +3,10 @@ module video_test (
     input wire clk,
     input wire paper_ink, trace_on, printer_busy, pressed,
     input wire [5:0] selected,
-    input wire mode_480p,
+    input wire mode_480p, direct_video,
+    input wire [9:0] mouse_x,
+    input wire [8:0] mouse_y,
+    input wire mouse_visible,
     input wire [9:0] card_x,
     input wire card_visible, card_front, card_error,
     input wire [1:0] aspect,
@@ -25,10 +28,11 @@ module video_test (
     assign gamma_supported = gamma_bus[21];
 
     ti59_video renderer (
-        .clk(clk), .mode_480p(mode_480p), .native_480p(native_480p), .segments(96'h00063f5b4f666d7d077f6f40), .calc(1'b0),
+        .clk(clk), .mode_480p(mode_480p), .direct_video(direct_video), .native_480p(native_480p), .segments(96'h00063f5b4f666d7d077f6f40), .calc(1'b0),
         .card_x(card_x),.card_visible(card_visible),.card_front(card_front),.card_error(card_error),
         .printer_busy(printer_busy),.trace_on(trace_on),.paper_pixel(paper_ink),.paper_head(9'd0),.paper_read_addr(),
         .selected(selected), .pressed(pressed), .origin(origin), .frame(),
+        .mouse_x(mouse_x),.mouse_y(mouse_y),.mouse_visible(mouse_visible),
         .ce_pixel(ce_in), .hs(hs_in), .vs(vs_in), .de(),
         .hblank(hblank), .vblank(vblank), .r(r_in), .g(g_in), .b(b_in)
     );

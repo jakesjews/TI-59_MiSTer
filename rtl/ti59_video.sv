@@ -1,11 +1,14 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 // Native 240p/480p raster; the photographic panel has 640x480 logical pixels.
 module ti59_video (
-    input wire clk, mode_480p,
+    input wire clk, mode_480p, direct_video,
     input wire [95:0] segments,
     input wire calc,
     input wire [5:0] selected,
     input wire pressed,
+    input wire [9:0] mouse_x,
+    input wire [8:0] mouse_y,
+    input wire mouse_visible,
     input wire [9:0] card_x,
     input wire card_visible, card_front, card_error,
     input wire printer_busy, trace_on, paper_pixel,
@@ -17,6 +20,7 @@ module ti59_video (
     output reg ce_pixel, hs, vs, de, hblank, vblank,
     output reg [7:0] r,g,b
 );
+    `include "rtl/ti59_panel.vh"
     reg [9:0] hc = 0, vc = 0;
     reg [1:0] divider = 0;
     wire tick = native_480p ? !divider[0] : divider == 0;
@@ -37,6 +41,12 @@ module ti59_video (
     // The ring head is the bottom of the visible paper. Latch once per frame
     // so the physical feed moves the entire printed page without tearing.
     reg [8:0] paper_head_view = 0;
+    reg [9:0] pointer_x = 0;
+    reg [8:0] pointer_y = 0;
+    reg pointer_visible = 0;
+    always @(posedge clk) if(frame) begin
+        pointer_x<=mouse_x; pointer_y<=mouse_y; pointer_visible<=mouse_visible;
+    end
     always @(posedge clk) if (frame) paper_head_view <= paper_head;
     wire [8:0] paper_y = paper_head_view + py - 9'd264;
     wire [6:0] paper_x = 7'(hc - 10'd108);
@@ -63,7 +73,9 @@ module ti59_video (
             if (hc == 799) begin
                 hc <= 0;
                 if (vc == (native_480p ? 524 : 261)) begin
-                    vc <= 0; native_480p <= mode_480p; frame <= 1;
+                    // Normal HDMI always gets the full-detail 480p panel.
+                    // The resolution option applies only to Direct Video.
+                    vc <= 0; native_480p <= !direct_video || mode_480p; frame <= 1;
                 end else vc <= vc + 10'd1;
             end else hc <= hc + 10'd1;
         end
@@ -94,7 +106,7 @@ module ti59_video (
         end
     endfunction
     reg [23:0] rgb;
-    integer j,bx,by,bw,bh;
+    integer j,bx,by,bw,bh,px,py_cursor;
     reg [7:0] leds;
     reg [1:0] stroke;
     always @* begin
@@ -116,12 +128,17 @@ module ti59_video (
         if (trace_on && xqq>=130 && xqq<174 && yqq>=399 && yqq<423 &&
             (xqq==130 || xqq==173 || yqq==399 || yqq==422)) rgb=24'hf4bf5b;
         if (printer_busy && xqq>=255 && xqq<261 && yqq>=409 && yqq<415) rgb=24'hff4936;
-        bx = selected < 45 ? 432 + ((int'(selected)%5)*59)/2 : 83+(int'(selected)-45)*47;
-        by = selected < 45 ? 177 + ((int'(selected)/5)*51)/2 : 399;
-        bw = selected < 45 ? 21 : 44; bh = selected < 45 ? 15 : 24;
+        bx=panel_key_x(int'(selected)); by=panel_key_y(int'(selected));
+        bw=panel_key_w(int'(selected)); bh=panel_key_h(int'(selected));
         if (selected < 48 && int'(xqq)>=bx && int'(xqq)<bx+bw && int'(yqq)>=by && int'(yqq)<by+bh &&
             (int'(xqq)==bx || int'(xqq)==bx+bw-1 || int'(yqq)==by || int'(yqq)==by+bh-1))
             rgb = pressed ? 24'hff4936 : (selected==46 && trace_on ? 24'hf4bf5b : 24'h87c6d7);
+        // Black-edged white arrow, drawn last and tall enough for 240p.
+        // Both cursor position and artwork use the same 640x480 coordinates.
+        px=int'(xqq)-int'(pointer_x); py_cursor=int'(yqq)-int'(pointer_y);
+        if(pointer_visible && px>=0 && px<10 && py_cursor>=0 && py_cursor<20 && px<=py_cursor/2) begin
+            rgb=(px<2 || py_cursor>=18 || px>=py_cursor/2-1) ? 24'h11151a : 24'hffffff;
+        end
     end
     always @(posedge clk) begin
         ce_pixel <= ce_qq;

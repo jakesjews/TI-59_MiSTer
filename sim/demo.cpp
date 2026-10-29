@@ -11,8 +11,8 @@
 static void require(bool ok,const std::string&s){if(!ok)throw std::runtime_error(s);}
 int main(int argc,char**argv){
     std::cout.setf(std::ios::unitbuf);Verilated::commandArgs(argc,argv);Vti59_system d;
-    d.clk=0;d.reset=1;d.mode_480p=1;d.clear_paper=0;d.osd_open=0;
-    d.ps2_key=0;d.joystick=0;d.lib_wr=0;d.lib_waddr=0;d.lib_wdata=0;
+    d.clk=0;d.reset=1;d.mode_480p=1;d.direct_video=1;d.clear_paper=0;d.osd_open=0;
+    d.ps2_key=0;d.ps2_mouse=0;d.joystick=0;d.lib_wr=0;d.lib_waddr=0;d.lib_wdata=0;
     d.card_download=0;d.card_wr=0;d.card_addr=0;d.card_dout=0;d.sound_level=0;
     std::ofstream pcm("build/demo/audio.s16le",std::ios::binary);
     FILE*video=popen("ffmpeg -hide_banner -loglevel error -y -f rawvideo -pixel_format rgb24 -video_size 640x480 -framerate 30 -i pipe:0 -an -vf scale=1280:960:flags=neighbor -c:v libx264 -preset fast -crf 18 -pix_fmt yuv420p -movflags +faststart build/demo/ti59-card-and-printer-silent.mp4","w");

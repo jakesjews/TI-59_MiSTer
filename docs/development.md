@@ -27,9 +27,12 @@ The `sys/` directory is an unchanged copy of Template_MiSTer revision
 | 240p | 640×240; 800×262 total; 12.6 MHz; 15.750 kHz / 60.115 Hz | Doubles to 640×480, 800×524 total; 31.500 kHz / 60.115 Hz |
 | 480p | 640×480; 800×525 total; 25.2 MHz; 31.500 kHz / 60.000 Hz | Native output; never doubled again |
 
-480p displays every row of the panel artwork. 240p samples alternate rows and
-honors MiSTer's `forced_scandoubler` setting. Resolution changes take effect at
-a frame boundary; calculator reset never stops sync.
+Normal HDMI always renders native 480p, regardless of the saved Direct Video
+choice. `hps_io.direct_video` enables the 240p/480p selection, which is hidden
+from the OSD during normal HDMI. 480p displays every row of the panel artwork.
+240p samples alternate rows and honors MiSTer's `forced_scandoubler` setting.
+Resolution changes take effect at a frame boundary; calculator reset never
+stops sync.
 
 Both modes use unmodified upstream `gamma_fast`, `video_mixer` and `video_freak`
 modules. Parallel gamma LUTs support the native 480p pixel rate. The mixer
@@ -38,12 +41,19 @@ scaling metadata. HDMI scaling offers Normal, V-Integer, HV-Integer-,
 HV-Integer+ and HV-Integer. Gamma is available in MiSTer's video settings.
 
 Native RGB/sync serves Direct Video and analog output. Normal HDMI, and analog
-with `vga_scaler=1`, use MiSTer's configured scaler output. Aspect and integer
-scaling affect that scaler, not native raster timing.
+with `vga_scaler=1`, use MiSTer's configured scaler output. Native analog shares
+the source raster, so it also runs at 480p while normal HDMI is active. Aspect
+and integer scaling affect the scaler, not native raster timing.
 
 Audio is signed 16-bit PCM at 48 kHz on both channels, independent of video mode.
 Quiet is one-quarter amplitude; Off is silent. Key taps do not repeat while
 held, and motor sounds follow card transport and printer activity.
+
+The mouse uses the existing `hps_io.ps2_mouse` packet interface. Pointer motion
+accumulates half pixels on the same 640×480 logical panel in both video modes.
+Hit testing and key highlights share `rtl/ti59_panel.vh`. A left press captures
+one target, with an 80 ms minimum duration for firmware scanning. OSD/card-loader
+ownership cancels capture and requires a fresh button-up report to rearm.
 
 ## Local checks
 
@@ -62,8 +72,8 @@ The optional differential oracle is Calc-U-59 under PolyForm Noncommercial
 1.0.0, fetched into ignored `research/sources/`. Its unmodified C++ is used only
 for local tests and is not synthesized.
 
-`make test` runs CPU, printer, audio, calculator-system, video and card-loader
-tests sequentially. The video test uses the real upstream mixer/freak modules
+`make test` runs CPU, printer, audio, mouse, calculator-system, video and
+card-loader tests sequentially. The video test uses the real upstream mixer/freak modules
 and checks both resolutions, forced scandoubling, artwork detail, gamma,
 aspect ratios and integer scaling. A simulation-only scope shim models
 Quartus name lookup for the mixer's unnamed generate block; no upstream

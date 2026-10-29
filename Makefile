@@ -1,11 +1,11 @@
 SHELL := /bin/bash
-RTL := rtl/ti59_audio.sv rtl/ti59_printer.sv rtl/ti59_card.sv rtl/tmc0501.sv rtl/ti59_input.sv rtl/ti59_display.sv rtl/ti59_video.sv rtl/ti59_system.sv
+RTL := rtl/ti59_mouse.sv rtl/ti59_audio.sv rtl/ti59_printer.sv rtl/ti59_card.sv rtl/tmc0501.sv rtl/ti59_input.sv rtl/ti59_display.sv rtl/ti59_video.sv rtl/ti59_system.sv
 VIDEO_RTL := rtl/ti59_video.sv rtl/ti59_video_out.sv sys/video_mixer.sv sys/video_freak.sv \
   sys/video_freezer.sv sys/gamma_corr.sv sys/scandoubler.v sys/hq2x.sv sys/math.sv
 VFLAGS := -Wall -Wno-PINCONNECTEMPTY -Wno-PROCASSINIT
 ORACLE := $(CURDIR)/research/sources/Calc-U-59
 
-.PHONY: all prepare lint test test-cpu test-system test-video test-card test-printer test-audio demo framework-check build
+.PHONY: all prepare lint test test-cpu test-system test-video test-card test-printer test-audio test-mouse demo framework-check build
 .NOTPARALLEL: test
 all: lint test
 prepare: roms/firmware.hex roms/firmware.bin roms/constants.hex roms/library.hex roms/panel.hex roms/panel_palette.hex roms/card.hex roms/printer_font.hex
@@ -17,7 +17,7 @@ lint: prepare
 	verilator --lint-only $(VFLAGS) --top-module ti59_system $(RTL)
 	verilator --lint-only $(VFLAGS) -Wno-TIMESCALEMOD sim/framework.vlt --top-module video_test \
 	  $(VIDEO_RTL) sim/video_test.sv
-test: test-cpu test-printer test-audio test-system test-video test-card
+test: test-cpu test-printer test-audio test-mouse test-system test-video test-card
 test-cpu: prepare
 	test -f $(ORACLE)/Core/TMC0501.cpp
 	mkdir -p build/cpu
@@ -29,7 +29,7 @@ test-cpu: prepare
 test-system: prepare
 	mkdir -p build/system build/card-animation
 	verilator --cc --exe --build -j 4 $(VFLAGS) --top-module ti59_system --Mdir build/system \
-	  $(RTL) $(CURDIR)/sim/system_test.cpp >build/system-build.log 2>&1
+	  $(RTL) $(CURDIR)/sim/system_test.cpp -CFLAGS '-std=c++17' >build/system-build.log 2>&1
 	build/system/Vti59_system
 test-video: prepare
 	mkdir -p build/video
@@ -59,6 +59,12 @@ test-audio:
 	verilator --cc --exe --build -j 4 $(VFLAGS) --top-module ti59_audio --Mdir build/audio \
 	  rtl/ti59_audio.sv $(CURDIR)/sim/audio_test.cpp >build/audio-build.log 2>&1
 	build/audio/Vti59_audio
+
+test-mouse:
+	mkdir -p build/mouse
+	verilator --cc --exe --build -j 4 $(VFLAGS) --top-module ti59_input --Mdir build/mouse \
+	  rtl/ti59_mouse.sv rtl/ti59_input.sv $(CURDIR)/sim/mouse_test.cpp -CFLAGS '-std=c++17' >build/mouse-build.log 2>&1
+	build/mouse/Vti59_input
 
 # A real-time recording of the simulated core, including its signed audio.
 demo: prepare

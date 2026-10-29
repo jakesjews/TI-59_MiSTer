@@ -15,8 +15,9 @@ static void require(bool ok, const std::string &why) {
 int main(int argc, char **argv) {
     Verilated::commandArgs(argc, argv);
     Vvideo_test d;
+    d.mouse_x=300;d.mouse_y=200;d.mouse_visible=0;
     d.selected=36;d.trace_on=0;d.printer_busy=0;d.pressed=0;d.paper_ink=0; d.card_x=420; d.card_visible=0; d.card_front=0; d.card_error=0;
-    d.clk=0; d.mode_480p=0; d.forced_scandoubler=0; d.aspect=0; d.scale=0;
+    d.clk=0; d.mode_480p=0; d.direct_video=1; d.forced_scandoubler=0; d.aspect=0; d.scale=0;
     d.hdmi_width=1920; d.hdmi_height=1080;
     d.gamma_en=0; d.gamma_wr=0; d.gamma_addr=0; d.gamma_value=0;
     uint64_t cycles=0;
@@ -88,6 +89,31 @@ int main(int argc, char **argv) {
                                native.begin()+y*2*640*3),"240p samples even rows of the 480p artwork");
         require(native!=doubled,"native 480p must preserve artwork detail absent in line doubling");
 
+        // Normal HDMI ignores a saved 240p choice and the global scandoubler.
+        d.direct_video=0;
+        for(int requested=0;requested<2;requested++)for(int forced=0;forced<2;forced++){
+            d.mode_480p=requested;d.forced_scandoubler=forced;wait(840000*3);
+            require(frame(true,false)==native,"normal HDMI always preserves native 480p detail");
+        }
+        d.direct_video=1;d.mode_480p=0;d.forced_scandoubler=0;wait(840000*3);
+        require(frame(false,false)==base,"return to Direct Video restores saved 240p choice");
+        std::cout<<"PASS: normal HDMI always uses native 480p; Direct Video restores its selected resolution\n";
+
+        // Cursor shares panel coordinates through native/doubled paths.
+        auto cursor_mode=[&](bool high,bool forced){
+            d.mode_480p=high;d.forced_scandoubler=forced;d.mouse_visible=0;wait(840000*3);
+            auto clean=frame(high,forced);d.mouse_visible=1;wait(840000*2);auto pointer=frame(high,forced);
+            unsigned changed=0,height=(high||forced)?480:240;
+            for(unsigned y=0;y<height;y++)for(unsigned x=0;x<640;x++){
+                auto at=(y*640+x)*3;
+                bool different=!std::equal(clean.begin()+at,clean.begin()+at+3,pointer.begin()+at);
+                unsigned logical_y=high?y:(forced?(y/2)*2:y*2);
+                if(different){changed++;require(x>=300 && x<310 && logical_y>=200 && logical_y<220,"cursor confined to logical position");}
+            }
+            require(changed>30,"cursor visible through video pipeline");
+        };
+        cursor_mode(false,false);cursor_mode(false,true);cursor_mode(true,false);cursor_mode(true,true);
+        d.mouse_visible=0;d.mode_480p=1;d.forced_scandoubler=0;wait(840000*2);
         d.selected=46;d.trace_on=1;wait(840000*2);auto trace=frame(true,false);
         auto at=(400*640+130)*3;
         require(trace[at]==244 && trace[at+1]==191 && trace[at+2]==91,"TRACE stays gold while selected");

@@ -1,6 +1,7 @@
 set_global_assignment -name SYSTEMVERILOG_FILE TI59.sv
 set_global_assignment -name SYSTEMVERILOG_FILE rtl/tmc0501.sv
 set_global_assignment -name SYSTEMVERILOG_FILE rtl/ti59_input.sv
+set_global_assignment -name SYSTEMVERILOG_FILE rtl/ti59_mouse.sv
 set_global_assignment -name SYSTEMVERILOG_FILE rtl/ti59_display.sv
 set_global_assignment -name SYSTEMVERILOG_FILE rtl/ti59_video.sv
 set_global_assignment -name SYSTEMVERILOG_FILE rtl/ti59_video_out.sv

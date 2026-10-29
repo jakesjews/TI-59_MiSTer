@@ -8,7 +8,7 @@ effects.
 
 ## Install
 
-1. Download [TI59_20261028.rbf](releases/TI59_20261028.rbf).
+1. Download [TI59_20261029.rbf](releases/TI59_20261029.rbf).
 2. Copy it to `_Computer/` on your MiSTer SD card and launch it.
 3. Optionally copy the files in [examples/cards](examples/cards) to `games/TI59/`.
 
@@ -16,9 +16,12 @@ The firmware and Master Library are built in. No separate boot ROM is needed.
 
 ## Get started
 
+Move the **mouse** and **left-click** any calculator key or printer button.
+Hold the printer's **ADV** button to keep feeding paper.
+
 Use **arrow keys** or the **gamepad D-pad** to highlight a button, then press
 **Space** or the gamepad's **Press key** button. This works for every calculator
-key and the three printer buttons. Mouse input is not supported.
+key and the three printer buttons.
 
 You can also type calculations directly: try **2 + 3 Enter** to get `5.`.
 
@@ -56,8 +59,9 @@ calculator memory.
 
 ## Display and sound
 
-In the MiSTer menu, **GUI resolution** selects **240p** or **480p** for Direct
-Video and native analog output.
+Normal HDMI automatically uses a **480p** GUI, scaled to your configured HDMI
+output. With Direct Video enabled, **Direct Video GUI** selects **240p** or
+**480p**. Native analog output follows the same source mode.
 
 **Sound effects** offers **Normal**, **Quiet**, and **Off** for key taps,
 the card motor and the printer.

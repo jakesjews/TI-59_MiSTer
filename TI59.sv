@@ -56,7 +56,7 @@ localparam CONF_STR = {
 	"F2,CRDBIN,Load magnetic card;",
 	"-;",
 	"O[122:121],Aspect ratio,Original,Full Screen,[ARC1],[ARC2];",
-	"O[2],GUI resolution,240p,480p;",
+	"H0O[2],Direct Video GUI,240p,480p;",
 	"O[6:4],HDMI scaling,Normal,V-Integer,HV-Integer-,HV-Integer+,HV-Integer;",
 	"-;",
 	"T[7],Clear printer paper;",
@@ -69,9 +69,11 @@ localparam CONF_STR = {
 };
 
 wire forced_scandoubler;
+wire direct_video;
 wire   [1:0] buttons;
 wire [127:0] status;
 wire  [10:0] ps2_key;
+wire  [24:0] ps2_mouse;
 wire [31:0] joystick;
 wire [21:0] gamma_bus;
 wire ioctl_download, ioctl_wr, card_busy;
@@ -87,12 +89,14 @@ hps_io #(.CONF_STR(CONF_STR)) hps_io
 	.gamma_bus(gamma_bus),
 
 	.forced_scandoubler(forced_scandoubler),
+	.direct_video(direct_video),
 
 	.buttons(buttons),
 	.status(status),
-	.status_menumask(0),
+	.status_menumask({15'd0,!direct_video}),
 	
 	.ps2_key(ps2_key),
+	.ps2_mouse(ps2_mouse),
 	.joystick_0(joystick),
 	.ioctl_download(ioctl_download),
 	.ioctl_wr(ioctl_wr),
@@ -133,12 +137,14 @@ ti59_system calculator
 	.reset(reset_core),
 	.osd_open(OSD_STATUS),
 	.mode_480p(status[2]),
+	.direct_video(direct_video),
 	.clear_paper(status[7]),
 	.sound_level(status[9:8]),
 	.audio(audio),
 	.audio_ce(),
 	.native_480p(native_480p),
 	.ps2_key(ps2_key),
+	.ps2_mouse(ps2_mouse),
 	.joystick(joystick[7:0]),
 	.lib_wr(ioctl_wr && ioctl_download && ioctl_index == 1 && ioctl_addr < 5000),
 	.lib_waddr(ioctl_addr[12:0]),
